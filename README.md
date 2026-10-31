@@ -38,3 +38,7 @@ The main objective of BLOOM is to encourage productivity, consistency, personal 
 ## 👩‍💻 Developer
 
 Developed as a personal portfolio project.
+
+## 📸 Project Preview
+
+![BLOOM Preview](bloom-tracker.png)
