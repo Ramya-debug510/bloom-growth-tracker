@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#fbf8ee">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<title>BLOOM — Personal Growth Tracker</title>
+<style>
+:root{--ink:#302b2b;--muted:#746b6b;--paper:#fbf8ee;--pink:#f0dce1;--green:#e2eadb;--lav:#e9e3f3;--line:#e6dfd4;--accent:#b96c8b}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font-family:Arial,Helvetica,sans-serif;line-height:1.5}
+header{padding:22px 5%;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.logo{font-size:28px;font-weight:900;letter-spacing:2px}.tag{font-size:13px;color:var(--muted)}
+main{max-width:1120px;margin:28px auto;padding:0 18px}
+.hero{background:linear-gradient(120deg,var(--pink),#f8eee4);border-radius:24px;padding:28px;margin-bottom:20px}
+.hero h1{font-size:clamp(25px,4vw,40px);margin:0 0 8px}.hero p{margin:0;color:#625959;max-width:650px}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:18px 0}
+.stat,.panel{background:white;border:1px solid var(--line);border-radius:18px;padding:18px}.stat small{display:block;color:var(--muted)}.stat strong{font-size:26px;display:block;margin:4px 0}
+nav{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0}.tab,button{border:0;border-radius:12px;padding:11px 15px;cursor:pointer;font-weight:700;font-size:14px;background:var(--green);color:var(--ink)}
+.tab.active{background:var(--accent);color:white}button:hover,.tab:hover{filter:brightness(.97)}button.secondary{background:#eee8f5}button.danger{background:#f6e3e2}
+.panel h2{margin-top:0}.sub{color:var(--muted);font-size:13px}
+.task{display:flex;align-items:flex-start;gap:10px;padding:11px 0;border-bottom:1px solid #f0ebe4}.task:last-child{border:0}.task input{width:18px;height:18px;accent-color:var(--accent);margin-top:3px}.task label{cursor:pointer;flex:1}.task input:checked+label{text-decoration:line-through;color:#948989}
+.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}.hidden{display:none!important}
+.timer{text-align:center;padding:18px}.clock{font-size:56px;font-weight:800;letter-spacing:2px;margin:8px}
+input[type="number"],input[type="text"],textarea,select{border:1px solid var(--line);border-radius:10px;padding:10px;font:inherit;max-width:100%;background:#fff}
+textarea{width:100%;min-height:90px}.progress{height:9px;background:#eee7e3;border-radius:20px;overflow:hidden;margin:10px 0}.progress span{display:block;height:100%;width:0;background:var(--accent);transition:width .2s}
+.chart{display:flex;align-items:flex-end;gap:10px;height:150px;padding:12px 4px 0;border-bottom:1px solid var(--line)}.barwrap{flex:1;text-align:center;font-size:11px;color:var(--muted)}.bar{width:100%;min-height:4px;background:var(--accent);border-radius:7px 7px 0 0;margin:0 auto 7px}.badge-row{display:flex;gap:10px;flex-wrap:wrap}.badge{padding:10px 12px;border:1px solid var(--line);border-radius:14px;background:#fff8e9;font-size:13px}.badge.locked{filter:grayscale(1);opacity:.48}.reminder-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:10px 0}
+footer{text-align:center;color:var(--muted);font-size:12px;padding:28px}
+@media(max-width:760px){.stats{grid-template-columns:repeat(2,1fr)}.grid2{grid-template-columns:1fr}header{padding:18px}main{margin:18px auto}.clock{font-size:46px}}
+</style>
+</head>
+<body>
+<header><div><div class="logo">BLOOM.</div><div class="tag">Your personal growth tracker · Small steps, big changes</div></div><div class="tag" id="today"></div></header>
+<main>
+<section class="hero"><h1>Grow at your own pace. ✨</h1><p>A gentle daily plan for coding, English, college, wellbeing and spending less time scrolling. Tick what you finish — progress, not perfection.</p></section>
+<section class="stats">
+<div class="stat"><small>Tasks completed</small><strong id="taskStat">0/0</strong><small>today</small></div>
+<div class="stat"><small>Learning minutes</small><strong id="learnStat">0</strong><small>logged today</small></div>
+<div class="stat"><small>Self-care habits</small><strong id="careStat">0/4</strong><small>checked today</small></div>
+<div class="stat"><small>Focus timer</small><strong>25:00</strong><small>ready when you are</small></div>
+</section>
+<nav>
+<button class="tab active" data-tab="daily">☑ Daily checklist</button>
+<button class="tab" data-tab="career">💻 Career</button>
+<button class="tab" data-tab="english">🗣 English</button>
+<button class="tab" data-tab="phone">📵 Phone control</button>
+<button class="tab" data-tab="care">🌿 Self-care</button>
+<button class="tab" data-tab="focus">⏳ Focus & reminders</button>
+</nav>
+<section class="grid2" style="margin:18px 0">
+<div class="panel"><h2>🔥 Your streak</h2><div class="row"><strong id="streakCount" style="font-size:32px">0 days</strong><span class="sub">with at least one task completed</span></div><p class="sub" id="streakMessage">Start your first day today!</p><h3>Achievement badges</h3><div id="badges" class="badge-row"></div></div>
+<div class="panel"><h2>📊 Weekly progress</h2><p class="sub">Tasks checked each day on this device.</p><div id="weeklyChart" class="chart"></div></div>
+</section>
+<section id="daily" class="page">
+<div class="grid2">
+<div class="panel"><h2>Today's checklist</h2><p class="sub">Tick each task as you complete it. Your progress is saved on this device.</p><div id="dailyTasks"></div><div class="row" style="margin-top:14px"><button class="secondary" id="resetDay">Reset today's checks</button></div></div>
+<div class="panel"><h2>Today's plan</h2><p class="sub">A flexible guide around your college hours (8:15 AM–2:45 PM).</p><p><b>Before college</b><br>Wake up, get ready, breakfast</p><p><b>After college</b><br>Rest + snack, then one focused learning session</p><p><b>Evening</b><br>English speaking, light movement, self-care</p><p><b>Night</b><br>Prepare tomorrow's tasks; keep phone away before sleep</p><textarea id="notes" placeholder="Write one small goal for today..."></textarea></div>
+</div>
+</section>
+<section id="career" class="page hidden">
+<div class="grid2">
+<div class="panel"><h2>Career learning</h2><p class="sub">Choose a small task and build consistency.</p><div id="careerTasks"></div></div>
+<div class="panel"><h2>Log learning time</h2><p>Enter how many minutes you studied today.</p><input id="minutes" type="number" min="0" max="600" value="0"><button id="saveMinutes">Save minutes</button><p id="minutesMsg" class="sub"></p><h3>Weekly focus</h3><p>Python basics → problem solving → cybersecurity foundations → mini-projects.</p></div>
+</div>
+</section>
+<section id="english" class="page hidden">
+<div class="panel"><h2>English speaking practice</h2><p class="sub">Start with 5–10 minutes. Mistakes are part of learning.</p><div id="englishTasks"></div><h3>Today's speaking prompt</h3><p>“Introduce yourself and explain one thing you learned today.”</p><textarea id="englishNotes" placeholder="Write a few sentences or new words..."></textarea></div>
+</section>
+<section id="phone" class="page hidden">
+<div class="grid2"><div class="panel"><h2>Phone control 📵</h2><p>Log your Instagram / Reels time honestly—no judgement, just awareness.</p><label for="screenMins">Minutes spent scrolling today</label><br><input id="screenMins" type="number" min="0" max="1440" value="0"><button id="saveScreen">Save screen time</button><p id="screenMsg" class="sub"></p></div><div class="panel"><h2>Try these boundaries</h2><div id="phoneTasks"></div><p class="sub">Tip: keep your phone away during one 25-minute study session.</p></div></div>
+</section>
+<section id="care" class="page hidden">
+<div class="panel"><h2>Self-care 🌿</h2><p class="sub">Simple habits; you don't need to do everything perfectly.</p><div id="careTasks"></div></div>
+</section>
+<section id="focus" class="page hidden">
+<div class="grid2"><div class="panel timer"><h2>Focus timer</h2><div class="clock" id="clock">25:00</div><p class="sub" id="timerStatus">Ready when you are.</p><div class="row" style="justify-content:center"><button id="startTimer">Start</button><button id="pauseTimer" class="secondary">Pause</button><button id="resetTimer" class="danger">Reset</button></div><p class="sub">Focus for 25 minutes, then take a short break.</p></div><div class="panel"><h2>Reminders</h2><div class="task"><input type="checkbox" id="rem1"><label for="rem1">After college: rest, then one learning session</label></div><div class="task"><input type="checkbox" id="rem2"><label for="rem2">Evening: 5 minutes of English speaking</label></div><div class="task"><input type="checkbox" id="rem3"><label for="rem3">Night: plan tomorrow and put phone away</label></div><h3>Daily reminders 🔔</h3>
+<p class="sub">Choose reminder times. Browser notifications work while this app is open; keep this tab open for reminders.</p>
+<div class="reminder-row"><label for="remTime1">Study</label><input id="remTime1" type="time" value="16:00"><label><input id="remOn1" type="checkbox"> On</label></div>
+<div class="reminder-row"><label for="remTime2">English</label><input id="remTime2" type="time" value="18:00"><label><input id="remOn2" type="checkbox"> On</label></div>
+<div class="reminder-row"><label for="remTime3">Plan tomorrow</label><input id="remTime3" type="time" value="21:00"><label><input id="remOn3" type="checkbox"> On</label></div>
+<button id="saveReminders">Save reminder settings</button><p id="reminderStatus" class="sub">Reminders are off until you enable them.</p></div></div>
+</section>
+<div class="row" style="justify-content:flex-end;margin-top:16px"><button class="secondary" id="exportBtn">Export my progress</button></div>
+</main><footer>BLOOM · Small steps count. Your entries stay in this browser on this device.</footer>
+<script>
+(function(){
+const $ = id => document.getElementById(id);
+const dateKey = new Date().toISOString().slice(0,10);
+$('today').textContent = new Date().toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+const defaults={
+daily:[['Morning routine','Start the day calmly and have breakfast'],['College classes','Attend classes and note important tasks'],['Rest + water','Take a break after college'],['Python practice','Practice one small coding concept'],['English speaking','Speak aloud for 5–10 minutes'],['Prepare for tomorrow','Write tomorrow’s top priority']],
+career:[['Python','Practice basics, conditions or loops'],['Problem solving','Solve one beginner coding question'],['Cybersecurity','Learn one basic security concept'],['Aptitude','Practice a few questions']],
+english:[['Speak aloud','Talk for 5 minutes about your day'],['Learn vocabulary','Learn 3 useful words and use them'],['Listen and repeat','Repeat a short English clip']],
+phone:[['No phone during study','Put the phone out of reach for 25 minutes'],['Pause before opening Reels','Ask: why am I opening this app?'],['Keep phone away at bedtime','Set a gentle boundary before sleep']],
+care:[['Drink water regularly',''],['Eat regular balanced meals',''],['Basic skin and hair care',''],['Take a short movement break','']]
+};
+const storeKey='bloom-v2-'+dateKey;
+let state={};
+try{state=JSON.parse(localStorage.getItem(storeKey)||'{}')}catch(e){state={}}
+if(!state.checked)state.checked={};
+if(!state.minutes)state.minutes=0;
+if(!state.screen)state.screen=0;
+const historyKey='bloom-history-v1';
+function readHistory(){try{return JSON.parse(localStorage.getItem(historyKey)||'{}')}catch(e){return {}}}
+function completedCount(s){return Object.values((s&&s.checked)||{}).filter(Boolean).length}
+function recordHistory(){const h=readHistory();h[dateKey]={checked:state.checked||{},minutes:state.minutes||0};localStorage.setItem(historyKey,JSON.stringify(h))}
+function save(){localStorage.setItem(storeKey,JSON.stringify(state));recordHistory();updateStats();updateGrowthWidgets()}
+function renderList(items,containerId,prefix){
+const box=$(containerId); box.innerHTML='';
+items.forEach((item,i)=>{
+const id=prefix+'-'+i;
+const row=document.createElement('div');row.className='task';
+const cb=document.createElement('input');cb.type='checkbox';cb.id=id;cb.checked=!!state.checked[id];
+const label=document.createElement('label');label.htmlFor=id;label.textContent=item[0];
+if(item[1]){const small=document.createElement('div');small.className='sub';small.textContent=item[1];label.appendChild(small)}
+cb.addEventListener('change',()=>{state.checked[id]=cb.checked;save()});
+row.append(cb,label);box.appendChild(row);
+});
+}
+renderList(defaults.daily,'dailyTasks','d');
+renderList(defaults.career,'careerTasks','c');
+renderList(defaults.english,'englishTasks','e');
+renderList(defaults.phone,'phoneTasks','p');
+renderList(defaults.care,'careTasks','s');
+$('minutes').value=state.minutes;$('screenMins').value=state.screen;
+$('notes').value=state.notes||'';$('englishNotes').value=state.englishNotes||'';
+['notes','englishNotes'].forEach(id=>$(id).addEventListener('input',()=>{state[id== 'notes'?'notes':'englishNotes']=$(id).value;save()}));
+function updateStats(){
+const all=Object.keys(defaults).flatMap(k=>defaults[k].map((_,i)=>({id:({daily:'d',career:'c',english:'e',phone:'p',care:'s'})[k]+'-'+i,group:k})));
+const done=all.filter(x=>state.checked[x.id]).length;
+$('taskStat').textContent=done+'/'+all.length;$('learnStat').textContent=state.minutes;
+$('careStat').textContent=defaults.care.filter((_,i)=>state.checked['s-'+i]).length+'/4';
+}
+function updateGrowthWidgets(){
+ const h=readHistory(); h[dateKey]={checked:state.checked||{},minutes:state.minutes||0};
+ const chart=$('weeklyChart'); if(chart){chart.innerHTML=''; const today=new Date();
+  for(let n=6;n>=0;n--){const d=new Date(today);d.setDate(today.getDate()-n);const key=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');const count=completedCount(h[key]);const wrap=document.createElement('div');wrap.className='barwrap';const bar=document.createElement('div');bar.className='bar';bar.style.height=Math.max(4,Math.min(100,count*8))+'px';bar.title=count+' tasks';const label=document.createElement('div');label.textContent=d.toLocaleDateString(undefined,{weekday:'short'});wrap.append(bar,label);chart.append(wrap);}
+ }
+ let streak=0;const d=new Date();
+ for(let n=0;n<365;n++){const x=new Date(d);x.setDate(d.getDate()-n);const key=x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0');if(completedCount(h[key])>0)streak++;else if(n===0)continue;else break;}
+ if($('streakCount'))$('streakCount').textContent=streak+' day'+(streak===1?'':'s');
+ if($('streakMessage'))$('streakMessage').textContent=streak>=7?'Amazing! One week of showing up.':streak>0?'Nice! Come back tomorrow to keep your streak going.':'Tick at least one task today to start your streak.';
+ if($('badges')){const total=Object.values(h).reduce((sum,s)=>sum+completedCount(s),0);const badges=[['🌱 First step',total>=1],['✨ 10 tasks',total>=10],['🌷 25 tasks',total>=25],['🏆 50 tasks',total>=50],['🔥 7-day streak',streak>=7]];$('badges').innerHTML='';badges.forEach(([name,earned])=>{const b=document.createElement('div');b.className='badge'+(earned?'':' locked');b.textContent=(earned?'✓ ':'🔒 ')+name;$('badges').appendChild(b)})}
+}
+$('saveMinutes').addEventListener('click',()=>{state.minutes=Math.max(0,Math.min(600,Number($('minutes').value)||0));$('minutes').value=state.minutes;save();$('minutesMsg').textContent='Saved! Keep going, one step at a time.'});
+$('saveScreen').addEventListener('click',()=>{state.screen=Math.max(0,Math.min(1440,Number($('screenMins').value)||0));$('screenMins').value=state.screen;save();$('screenMsg').textContent='Saved. Awareness is progress—no judgement.'});
+$('resetDay').addEventListener('click',()=>{if(confirm('Reset all checklist ticks for today?')){state.checked={};save();document.querySelectorAll('.task input[type=checkbox]').forEach(cb=>cb.checked=false)}});
+document.querySelectorAll('.tab').forEach(btn=>btn.addEventListener('click',()=>{document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b===btn));document.querySelectorAll('.page').forEach(p=>p.classList.toggle('hidden',p.id!==btn.dataset.tab))}));
+let remaining=25*60,interval=null;
+function showClock(){$('clock').textContent=String(Math.floor(remaining/60)).padStart(2,'0')+':'+String(remaining%60).padStart(2,'0')}
+$('startTimer').addEventListener('click',()=>{if(interval)return;$('timerStatus').textContent='Focus time — one task at a time.';interval=setInterval(()=>{remaining--;showClock();if(remaining<=0){clearInterval(interval);interval=null;$('timerStatus').textContent='Session complete! Take a short break.';alert('Focus session complete! Take a short break.')}},1000)});
+$('pauseTimer').addEventListener('click',()=>{clearInterval(interval);interval=null;$('timerStatus').textContent='Paused. Resume when ready.'});
+$('resetTimer').addEventListener('click',()=>{clearInterval(interval);interval=null;remaining=25*60;showClock();$('timerStatus').textContent='Ready when you are.'});
+['rem1','rem2','rem3'].forEach(id=>{const k='bloom-reminders-'+dateKey;let saved={};try{saved=JSON.parse(localStorage.getItem(k)||'{}')}catch(e){}$(id).checked=!!saved[id];$(id).addEventListener('change',()=>{saved[id]=$(id).checked;localStorage.setItem(k,JSON.stringify(saved))})});
+$('exportBtn').addEventListener('click',()=>{const blob=new Blob([JSON.stringify({date:dateKey,...state},null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='bloom-progress-'+dateKey+'.json';a.click();URL.revokeObjectURL(a.href)});
+// Reminder preferences and lightweight in-page notification check.
+const reminderKey='bloom-reminders-settings-v1';
+function loadReminderSettings(){let r={};try{r=JSON.parse(localStorage.getItem(reminderKey)||'{}')}catch(e){};[1,2,3].forEach(i=>{if(r['time'+i])$('remTime'+i).value=r['time'+i];$('remOn'+i).checked=!!r['on'+i]});}
+loadReminderSettings();
+$('saveReminders').addEventListener('click',async()=>{
+ const r={};[1,2,3].forEach(i=>{r['time'+i]=$('remTime'+i).value;r['on'+i]=$('remOn'+i).checked});
+ if(r.on1||r.on2||r.on3){
+  if(!('Notification' in window)){$('reminderStatus').textContent='This browser does not support notifications. Keep the app open and use the checklist as your reminder.';}
+  else {let permission=Notification.permission;if(permission==='default'){try{permission=await Notification.requestPermission()}catch(e){}}
+   $('reminderStatus').textContent=permission==='granted'?'Reminder settings saved. Keep this tab open for notifications.':'Settings saved, but notifications are blocked. You can still use the in-app reminders.';}
+ } else $('reminderStatus').textContent='Reminder settings saved; all timed reminders are off.';
+ localStorage.setItem(reminderKey,JSON.stringify(r));
+});
+const firedKey='bloom-reminders-fired-'+dateKey;let fired={};try{fired=JSON.parse(localStorage.getItem(firedKey)||'{}')}catch(e){}
+setInterval(()=>{const now=new Date();const hhmm=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');let r={};try{r=JSON.parse(localStorage.getItem(reminderKey)||'{}')}catch(e){}
+ [1,2,3].forEach(i=>{if(r['on'+i]&&r['time'+i]===hhmm&&!fired[i]){fired[i]=true;localStorage.setItem(firedKey,JSON.stringify(fired));if('Notification' in window&&Notification.permission==='granted'){new Notification('BLOOM reminder 🌷',{body:['','Time for your study session.','A little English speaking practice?','Plan tomorrow and wind down.'][i]})}else{$('reminderStatus').textContent='It is reminder time! Check your BLOOM plan.'}}});
+},30000);
+updateStats();recordHistory();updateGrowthWidgets();
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js').catch(()=>{}));
+}
+})();
+</script>
+</body></html>

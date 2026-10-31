@@ -1,0 +1,3 @@
+{
+"name":"BLOOM Personal Growth Tracker","short_name":"BLOOM","start_url":"./index.html","scope":"./","display":"standalone","background_color":"#fbf8ee","theme_color":"#fbf8ee","description":"Daily checklist, career learning, English practice and focus tracker.","icons":[{"src":"icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any"}]
+}
